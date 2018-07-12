@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const shortid = require('shortid');
 const time = require('./../libs/timeLib');
-const response = require('./../libs/responseLib')
+const response = require('./../libs/responseLib');
 const logger = require('./../libs/loggerLib');
-const validateInput = require('../libs/paramsValidationLib')
-const check = require('../libs/checkLib')
+const validateInput = require('../libs/paramsValidationLib');
+const check = require('../libs/checkLib');
+const passwordLib = require('../libs/generatePasswordLib');
 
 /* Models */
 const UserModel = mongoose.model('User')
@@ -65,7 +66,7 @@ let signUpFunction = (req, res) => {
                     lastName: req.body.lastName || '',
                     email: req.body.email.toLowerCase(),
                     mobileNumber: req.body.mobileNumber,
-                    password: passwordLib.hashpassowrd(req.body.password),
+                    password: passwordLib.hashPassowrd(req.body.password),
                     createdOn: time.now()
                 })
 
