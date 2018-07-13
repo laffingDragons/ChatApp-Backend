@@ -4,7 +4,7 @@ const saltRounds = 10;
 // custom libray
 let logger = require('../libs/loggerLib');
 
-let hashpassword = (myPlainTextPassword) => {
+let hashPassword = (myPlainTextPassword) => {
 
     let salt = bcrypt.genSaltSync(saltRounds);
     let hash = bcrypt.hashSync(myPlainTextPassword, salt);
@@ -12,7 +12,8 @@ let hashpassword = (myPlainTextPassword) => {
 
 }
 
-let comparepassword = (oldPassword, hashpassword, cb) => {
+// Compare password Async
+let comparePassword = (oldPassword, hashpassword, cb) => {
 
     bcrypt.compare(oldPassword, hashpassword, (err, res) =>{
         if(err){
@@ -24,9 +25,18 @@ let comparepassword = (oldPassword, hashpassword, cb) => {
     })
 }
 
-module.exoports = {
 
-    hashPassword: hashpassword,
-    comparePassword: comparepassword
+// Compare password sync
+let comparePasswordSync = (myPlainTextPassword, hash) => {
+
+    return bcrypt.compareSync(myPlainTextPassword, hash);
+
+}
+
+
+module.exports = {
+
+    hashPassword: hashPassword,
+    comparePassword: comparePassword
 
 }
