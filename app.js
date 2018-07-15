@@ -11,7 +11,7 @@ const routeLoggerMiddleware = require('./app/middlewares/routeLogger.js');
 const globalErrorMiddleware = require('./app/middlewares/appErrorHandler');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
-
+const socketLib = require('./app/libs/socketLib');
 
 app.use(morgan('dev'));
 
@@ -72,6 +72,10 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 // end server listening code
+
+//socket.io connection handler
+const socketServer = socketLib.setServer(server);
+// end of socket handler
 
 /**
  * Event listener for HTTP server "error" event.
