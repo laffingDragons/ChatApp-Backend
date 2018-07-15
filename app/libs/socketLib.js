@@ -41,7 +41,7 @@ let setServer = (server) => {
                         socket.userId = currentUser.userId
                         let fulllName = `${currentUser.firstName} ${currentUser.lastName}`
                         console.log(`${fulllName} is online`);
-                        socket.emit(currentUser.userId, "You re online");
+                        // socket.emit(currentUser.userId, "You re online");
 
                         let userObj = {userId: currentUser.userId, userName: fulllName}
                         allOnlineUsers.push(userObj);
@@ -62,7 +62,16 @@ let setServer = (server) => {
                 allOnlineUsers.splice(removeIndex, 1);
                 console.log(allOnlineUsers);
                 
-            })
+            })//end of disconnection
+
+            //socket connection for sending chat message
+            socket.on('chat-msg', (data) =>{
+
+                console.log("Chat-msg socket was called");
+                console.log(data);
+                myIo.emit(data.reciverId, data);
+
+            })// end of socket
     })
 
 }
