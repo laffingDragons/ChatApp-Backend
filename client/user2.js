@@ -1,15 +1,15 @@
 // connecting with sockets.
 const socket = io('http://localhost:3000');
 
-const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RpZCI6IkIxWXN4NXRxeiIsImlhdCI6MTUyMjI3NDQ2NDkwNSwiZXhwIjoxNTIyMzYwODY0LCJzdWIiOiJhdXRoVG9rZW4iLCJpc3MiOiJlZENoYXQiLCJkYXRhIjp7Im1vYmlsZU51bWJlciI6OTg3NDU4OTk2NiwiZW1haWwiOiJzb21ldGhpbmdAZWR3aXNvci5jb20iLCJsYXN0TmFtZSI6Ikt1bWFyIiwiZmlyc3ROYW1lIjoiQWRpdHlhIiwidXNlcklkIjoiU0otaWVjdHFNIn19.0C2GL6kFuEp--EPFrxDL2qvP_Jc8UChNGEb6YNCcXKQ"
-const userId= "SJ-iectqM"
+const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RpZCI6IkVUZ2sxMXFfeSIsImlhdCI6MTUzMTcyNjIxMDU1OSwiZXhwIjoxNTMxODEyNjEwLCJzdWIiOiJhdXRoVG9rZW4iLCJpc3MiOiJlZENoYXQiLCJkYXRhIjp7Im1vYmlsZU51bWJlciI6OTk5OTU1MjU2MiwiZW1haWwiOiJkdWRlYWtzaHVAZ21haWwuY29tIiwibGFzdE5hbWUiOiJkb2UiLCJmaXJzdE5hbWUiOiJqb2huIiwidXNlcklkIjoiSTFpTEU3a2ZNIn19.m4AX4XhvcDFM0SU7B8g4358ck6nOdw92n9ZlbaHy5fE"
+const userId= "I1iLE7kfM"
 
 let chatMessage = {
   createdOn: Date.now(),
-  receiverId: 'H1pOQGY9M',//putting user2's id here 
+  receiverId: 'zSfJO50l0',//putting user2's id here 
   receiverName: "Mr Xyz",
   senderId: userId,
-  senderName: "Aditya Kumar"
+  senderName: "Akshay Patil"
 }
 
 let chatSocket = () => {

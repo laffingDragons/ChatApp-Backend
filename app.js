@@ -11,7 +11,6 @@ const routeLoggerMiddleware = require('./app/middlewares/routeLogger.js');
 const globalErrorMiddleware = require('./app/middlewares/appErrorHandler');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
-const socketLib = require('./app/libs/socketLib');
 
 app.use(morgan('dev'));
 
@@ -42,6 +41,7 @@ app.all('*', function(req, res, next) {
 //Bootstrap models
 fs.readdirSync(modelsPath).forEach(function (file) {
   if (~file.indexOf('.js')) require(modelsPath + '/' + file)
+  
 });
 // end Bootstrap models
 
@@ -74,6 +74,8 @@ server.on('listening', onListening);
 // end server listening code
 
 //socket.io connection handler
+const socketLib = require('./app/libs/socketLib');
+
 const socketServer = socketLib.setServer(server);
 // end of socket handler
 

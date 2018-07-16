@@ -1,83 +1,187 @@
 const socketio = require('socket.io');
 const mongoose = require('mongoose');
 const shortid = require('shortid');
-const logger =  require('./loggerLib');
+const logger = require('./loggerLib.js');
 const events = require('events');
-const evntEmitter = new events.EventEmitter();
+const eventEmitter = new events.EventEmitter();
 
-const tokenLib = require('./tokenLib');
-const check = require('./checkLib');
-const response = require('./responseLib');
+const tokenLib = require("./tokenLib.js");
+const check = require("./checkLib.js");
+const response = require('./responseLib')
+const ChatModel = mongoose.model('Chat')
+const redisLib = require('./redisLib')
 
-//passing the instance of server
 let setServer = (server) => {
 
-    let allOnlineUsers = [];
+    // let allOnlineUsers = []
 
-    //Following two line is to intialize the server 
     let io = socketio.listen(server);
 
-    let myIo = io.of('');
+    let myIo = io.of('/')
 
-    // main event handler   -----    handled events
-    myIo.on('connection', (socket) => {
+    myIo.on('connection',(socket) => {
 
-        console.log("On connection ----- Emitting verify users");
+        console.log("on connection--emitting verify user");
 
-        socket.emit('verifyUser','');
+        socket.emit("verifyUser", "");
 
         // code to verify the user and make him online
-            socket.on('set-user', (authToken) => {
 
-                console.log('set-user was called');
-                tokenLib.verifyClaimWithoutSecret((authToken, (err, user) => {
-                    if(err){
-                        socket.emit('auth-err', {status:500, error :' Please provide correct auth-Token'});
-                    }else{
+        socket.on('set-user',(authToken) => {
 
-                        console.log('User is verified.... Setting details');
-                        let currentUser = user.data;
+            console.log("set-user called",authToken)
+            tokenLib.verifyClaimWithoutSecret(authToken,(err,user)=>{
+                if(err){
+                    socket.emit('auth-error', { status: 500, error: 'Please provide correct auth token' })
+                }
+                else{
 
-                        socket.userId = currentUser.userId
-                        let fulllName = `${currentUser.firstName} ${currentUser.lastName}`
-                        console.log(`${fulllName} is online`);
-                        // socket.emit(currentUser.userId, "You re online");
+                    console.log("user is verified..setting details");
+                    let currentUser = user.data;
+                    // setting socket user id 
+                    socket.userId = currentUser.userId
+                    let fullName = `${currentUser.firstName} ${currentUser.lastName}`
+                    console.log(`${fullName} is online`);
+                    let key = currentUser.userId
+                    let value = fullName
 
-                        let userObj = {userId: currentUser.userId, userName: fulllName}
-                        allOnlineUsers.push(userObj);
+                    let setUserOnline = redisLib.setANewOnlineUserInHash("onlineUsers", key, value, (err, result) => {
+                        if(err){
+                            console.log(`some error occured`,err);
+                        }else{
+                            // get online users lists
+                            redisLib.getAllUsersInHash('onlineUsers',(err,result) =>{
 
-                    }
-                }))
+                                if(err){
+                                    console.log(err);
+                                }else{
+                                    console.log(`${fullName} is online`);
+                                    // setting room name
+                                    socket.room = 'edChat'
+                                    // joining chat-group room.
+                                    socket.join(socket.room)
+                                    socket.to(socket.room).broadcast.emit('online-user-list', result);
+                                }
+
+                            })
+                        }
+
+                    })
+
+                    // let userObj = {userId:currentUser.userId,fullName:fullName}
+                    // allOnlineUsers.push(userObj)
+                    // console.log(allOnlineUsers)
+
+                    // // setting room name
+                    // socket.room = 'edChat'
+                    // // joining chat-group room.
+                    // socket.join(socket.room)
+                    // socket.to(socket.room).broadcast.emit('online-user-list',allOnlineUsers);
+
+                }
+
+
             })
+          
+        }) // end of listening set-user event
 
-            //Socket on disconnection
-            socket.on('disconnect', () => {
-                // disconnect user from the socket
-                // remove user from online list
-                // unsubscribe user from his own channel
-                console.log('user disconnected');
-                
-                console.log(socket.userId);
-                let removeIndex = allOnlineUsers.map((user) =>{ return user.userId }).indexOf(socket.userId);
-                allOnlineUsers.splice(removeIndex, 1);
-                console.log(allOnlineUsers);
-                
-            })//end of disconnection
 
-            //socket connection for sending chat message
-            socket.on('chat-msg', (data) =>{
+        socket.on('disconnect', () => {
+            // disconnect the user from socket
+            // remove the user from online list
+            // unsubscribe the user from his own channel
 
-                console.log("Chat-msg socket was called");
-                console.log(data);
-                myIo.emit(data.reciverId, data);
+            console.log("user is disconnected");
+            // console.log(socket.connectorName);
+            console.log(socket.userId);
 
-            })// end of socket
-    })
+
+            // var removeIndex = allOnlineUsers.map(function(user) { return user.userId; }).indexOf(socket.userId);
+            // allOnlineUsers.splice(removeIndex,1)
+            // console.log(allOnlineUsers)
+
+            // socket.to(socket.room).broadcast.emit('online-user-list',allOnlineUsers);
+            // socket.leave(socket.room)
+
+            if(socket.userId){
+                redisLib.deleteUserFromHash('onlineUsers', socket.userId)
+                redisLib.getAllUsersInHash('onlineUsers',(err, result)=>{
+                    if(err){
+                        console.log(err);
+                    }else{
+                        socket.leave(socket.room)
+                        socket.to(socket.room).broadcast.emit('online-user-list', result)
+                    }
+                })
+            }
+
+        }) // end of on disconnect
+
+
+        socket.on('chat-msg', (data) => {
+            console.log("socket chat-msg called")
+            console.log(data);
+            data['chatId'] = shortid.generate()
+            console.log(data);
+
+            // event to save chat.
+            setTimeout(function(){
+                eventEmitter.emit('save-chat', data);
+
+            },2000)
+            myIo.emit(data.receiverId,data)
+
+        });
+
+        socket.on('typing', (fullName) => {
+            
+            socket.to(socket.room).broadcast.emit('typing',fullName);
+
+        });
+
+
+
+
+    });
 
 }
 
+
+// database operations are kept outside of socket.io code.
+
+// saving chats to database.
+eventEmitter.on('save-chat', (data) => {
+
+    // let today = Date.now();
+
+    let newChat = new ChatModel({
+
+        chatId: data.chatId,
+        senderName: data.senderName,
+        senderId: data.senderId,
+        receiverName: data.receiverName || '',
+        receiverId: data.receiverId || '',
+        message: data.message,
+        chatRoom: data.chatRoom || '',
+        createdOn: data.createdOn
+
+    });
+
+    newChat.save((err,result) => {
+        if(err){
+            console.log(`error occurred: ${err}`);
+        }
+        else if(result == undefined || result == null || result == ""){
+            console.log("Chat Is Not Saved.");
+        }
+        else {
+            console.log("Chat Saved.");
+            console.log(result);
+        }
+    });
+
+}); // end of saving chat.
+
 module.exports = {
-
-    setServer:setServer
-
+    setServer: setServer
 }
