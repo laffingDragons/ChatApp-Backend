@@ -22,7 +22,7 @@ let userSchema = new Schema({
   },
   password: {
     type: String,
-    default: 'passskdajakdjkadsj'
+    default: ''
   },
   email: {
     type: String,

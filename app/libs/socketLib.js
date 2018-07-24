@@ -7,8 +7,10 @@ const eventEmitter = new events.EventEmitter();
 
 const tokenLib = require("./tokenLib.js");
 const check = require("./checkLib.js");
+const time = require("./timeLib");
 const response = require('./responseLib')
 const ChatModel = mongoose.model('Chat')
+const RoomModel = mongoose.model('Room')
 const redisLib = require('./redisLib')
 
 let setServer = (server) => {
@@ -56,9 +58,10 @@ let setServer = (server) => {
                                     console.log(err);
                                 }else{
                                     console.log(`${fullName} is online`);
+                                    console.log(">>>>",`${socket} `);
                                     // setting room name
                                     socket.room = 'edChat'
-                                    // joining chat-group room.
+                                    // joining chat-group room. 
                                     socket.join(socket.room)
                                     socket.to(socket.room).broadcast.emit('online-user-list', result);
                                 }
@@ -119,8 +122,8 @@ let setServer = (server) => {
 
 
         socket.on('chat-msg', (data) => {
+
             console.log("socket chat-msg called")
-            console.log(data);
             data['chatId'] = shortid.generate()
             console.log(data);
 
@@ -132,6 +135,25 @@ let setServer = (server) => {
             myIo.emit(data.receiverId,data)
 
         });
+
+
+        //crate a new chat Room
+
+    socket.on('create-room', (data) => {
+
+        console.log("socket Create-room called")
+        data['roomId'] = shortid.generate()
+        console.log(data);
+
+        // event to save room.
+       
+            eventEmitter.emit('save-room', data);
+        
+        myIo.emit(data.receiverId,data)
+
+    })
+
+ 
 
         socket.on('typing', (fullName) => {
             
@@ -181,6 +203,35 @@ eventEmitter.on('save-chat', (data) => {
     });
 
 }); // end of saving chat.
+
+
+ //to save the room
+ eventEmitter.on('save-room', (data)=>{
+
+    let newRoom = new RoomModel({
+
+        roomId: data.roomId,
+        roomName : data.roomName,
+        members: data.members,
+        active: true,
+        admin: data.admin,
+        createdOn: time.now()
+    })
+
+    newRoom.save((err,result) => {
+        if(err){
+            console.log(`error occurred: ${err}`);
+        }
+        else if(result == undefined || result == null || result == ""){
+            console.log("Room Is Not Saved.");
+        }
+        else {
+            console.log("Room Saved.");
+            console.log(result);
+        }
+    });
+
+ });
 
 module.exports = {
     setServer: setServer

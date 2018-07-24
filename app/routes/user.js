@@ -47,13 +47,15 @@ module.exports.setRouter = (app) => {
         }
     */
 
+    app.post(`${baseUrl}/forgot-password`, userController.forgotPasswordFunction);
+
+    app.put(`${baseUrl}/change-password`, userController.changePasswordFunction);
+
     app.post(`${baseUrl}/login`, userController.loginFunction);
 
     app.put(`${baseUrl}/:userId/edit`, auth.isAuthorized, userController.editUser);
 
     app.post(`${baseUrl}/:userId/delete`, auth.isAuthorized, userController.deleteUser);
-
-    
 
     app.post(`${baseUrl}/logout`, auth.isAuthorized, userController.logout);
 

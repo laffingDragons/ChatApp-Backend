@@ -17,13 +17,13 @@ let isAuthorized = (req, res, next) => {
                 console.log(err);
                 logger.error(err.message, "Error in Authorization Middleware", 10);
                 let apiResponse = response.generate(true, "Failed to Authorize", 500, null);
-                reject(apiResponse);
+                res.send(apiResponse);
 
             }else if(check.isEmpty(authDetails)){
 
                 logger.error('No Authorization key Present', 'Authorization milldeware', 10);
                 let apiResponse = response.generate(true, "Invalid or Expired Authorization key", 400, null);
-                reject(apiResponse);
+                res.send(apiResponse);
 
             }else{
 
@@ -33,7 +33,7 @@ let isAuthorized = (req, res, next) => {
                         console.log(err);
                         logger.error(err.message, "Error in Authorization Middleware", 10);
                         let apiResponse = response.generate(true, "Failed to Authorize", 500, null);
-                        reject(apiResponse);
+                        res.send(apiResponse);
         
                     }else{
                         req.user = {userId: decoded.data.userId}
@@ -44,6 +44,11 @@ let isAuthorized = (req, res, next) => {
 
             }//end of verification
         })
+
+    } else {
+
+        let apiResponse = response.generate(true, "AuthToken not Found", 404, null);
+        res.send(apiResponse);
 
     }
 

@@ -1,4 +1,5 @@
 let appConfig = {};
+let nodeMailer = {};
 
 appConfig.port = 3000;
 appConfig.allowedCorsOrigin = "*";
@@ -8,11 +9,15 @@ appConfig.db = {
   }
 appConfig.apiVersion = '/api/v1';
 
+nodeMailer.email="cooldudeakshu@gmail.com";
+nodeMailer.password = "Btp@6969";
 
 module.exports = {
     port: appConfig.port,
     allowedCorsOrigin: appConfig.allowedCorsOrigin,
     environment: appConfig.env,
     db :appConfig.db,
-    apiVersion : appConfig.apiVersion
+    apiVersion : appConfig.apiVersion,
+    email: nodeMailer.email,
+    password: nodeMailer.password
 };
