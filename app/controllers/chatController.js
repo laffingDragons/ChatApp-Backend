@@ -103,7 +103,7 @@ let getGroupChat = (req, res) => {
   // function to validate params.
   let validateParams = () => {
     return new Promise((resolve, reject) => {
-      if (check.isEmpty(req.query.chatRoom)) {
+      if (check.isEmpty(req.query.roomId)) {
         logger.info('parameters missing', 'getUsersChat handler', 9)
         let apiResponse = response.generate(true, 'parameters missing.', 403, null)
         reject(apiResponse)
@@ -118,7 +118,7 @@ let getGroupChat = (req, res) => {
     return new Promise((resolve, reject) => {
       // creating find query.
       let findQuery = {
-        chatRoom: req.query.chatRoom
+        chatRoom: req.query.roomId
       }
 
       ChatModel.find(findQuery)

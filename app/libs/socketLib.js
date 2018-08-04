@@ -12,6 +12,7 @@ const response = require('./responseLib')
 const ChatModel = mongoose.model('Chat')
 const RoomModel = mongoose.model('Room')
 const redisLib = require('./redisLib')
+const mail = require('./mailLib');
 
 let setServer = (server) => {
 
@@ -58,7 +59,6 @@ let setServer = (server) => {
                                     console.log(err);
                                 }else{
                                     console.log(`${fullName} is online`);
-                                    console.log(">>>>",`${socket} `);
                                     // setting room name
                                     socket.room = 'edChat'
                                     // joining chat-group room. 
@@ -136,6 +136,21 @@ let setServer = (server) => {
 
         });
 
+        // Get chatroom msg
+        socket.on('chatroom-msg', (data) => {
+
+            console.log("socket chat-msg called")
+            data['chatId'] = shortid.generate()
+            console.log(data);
+
+            // event to save chat.
+            setTimeout(function(){
+                eventEmitter.emit('save-chat', data);
+
+            },2000)
+            myIo.emit(data.chatRoom, data)
+
+        });
 
         //crate a new chat Room
 
@@ -152,7 +167,6 @@ let setServer = (server) => {
         myIo.emit(data.receiverId,data)
 
     })
-
  
 
         socket.on('typing', (fullName) => {
