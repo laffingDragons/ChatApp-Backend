@@ -41,7 +41,7 @@ let getAllRoom = (req, res) => {
 // Pushing the Room to request Array
 let requestToJoin = (req, res) => {
 
-    let options = req.body;
+    let options = { $addToSet: { requested: req.body.requested } }
     RoomModel.update({ 'roomId': req.params.roomId }, options).exec((err, result) => {
         if (err) {
             console.log(err)
@@ -56,7 +56,7 @@ let requestToJoin = (req, res) => {
 
 }
 
-let getRoomById =   (req, res) => {
+let getRoomById = (req, res) => {
     RoomModel.findOne({ 'roomId': req.params.roomId })
         .select('-__v -_id')
         .lean()
@@ -78,40 +78,39 @@ let getRoomById =   (req, res) => {
 }// end get single Room
 
 // sending invitation mail
-let invitationMail = (req, res) =>{
+let invitationMail = (req, res) => {
 
-            if (req.body.email) {
-                if (!validateInput.Email(req.body.email)) {
+    if (req.body.email) {
+        if (!validateInput.Email(req.body.email)) {
 
-                    let apiResponse = response.generate(true, 'Email Does not met the requirement', 400, null)
-                    res.send(apiResponse);
+            let apiResponse = response.generate(true, 'Email Does not met the requirement', 400, null)
+            res.send(apiResponse);
 
-                } else {
+        } else {
 
-                    let roomName = req.body.roomName;
-                    let email = req.body.email;
-                    let link = req.body.link;
-                    let senderName = req.body.senderName;
+            let roomName = req.body.roomName;
+            let email = req.body.email;
+            let link = req.body.link;
+            let senderName = req.body.senderName;
 
-                    mail.invitationMail(roomName, email, link, senderName);
+            mail.invitationMail(roomName, email, link, senderName);
 
-                    let apiResponse = response.generate(false, 'Email sent successfully', 200, null)
-                    res.send(apiResponse);
-                    
-                }
-            } else {
-                logger.error('Field Missing During Room Creation', 'RoomController: createRoom()', 5)
-                let apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
-                res.send(apiResponse);
-            }
-            // end validate Room input
+            let apiResponse = response.generate(false, 'Email sent successfully', 200, null)
+            res.send(apiResponse);
+
+        }
+    } else {
+        logger.error('Field Missing During Room Creation', 'RoomController: createRoom()', 5)
+        let apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
+        res.send(apiResponse);
+    }
+    // end validate Room input
 }
 
 // Edit room
-let editRoom = (req, res) => {
+let editRoomName = (req, res) => {
 
-    let options = req.body;
-    RoomModel.update({ 'roomId': req.params.roomId }, options).exec((err, result) => {
+    RoomModel.update({ 'roomId': req.params.roomId }, { 'roomName': req.body.roomName }).exec((err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'roomController:editRoom', 10)
@@ -130,12 +129,84 @@ let editRoom = (req, res) => {
 
 }// end edit Room
 
+//add user to room
+let addUserToRoom = (req, res) => {
+    req.body.members = req.body.members.split(',')
+
+    let options = { $addToSet: { members: { $each: req.body.members } } }
+    RoomModel.update({ 'roomId': req.params.roomId }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'roomController:addUserToRoom', 10)
+            let apiResponse = response.generate(true, 'Failed To edit Room details', 500, null)
+            res.send(apiResponse)
+        } else if (check.isEmpty(result)) {
+            logger.info('No Room Found', 'RoomController: addUserToRoom')
+            let apiResponse = response.generate(true, 'No Room Found', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'User Added to room Successfully', 200, result)
+            res.send(apiResponse)
+        }
+    });// end Room model update
+
+
+}// end add user Room
+
+// remove user from member
+let removeUser = (req, res) => {
+
+    let options = { $pull: { members: req.body.members } }
+    RoomModel.update({ 'roomId': req.params.roomId }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'roomController:removeUser', 10)
+            let apiResponse = response.generate(true, 'Failed To remove user details', 500, null)
+            res.send(apiResponse)
+        } else if (check.isEmpty(result)) {
+            logger.info('No Room Found', 'RoomController: removeUser')
+            let apiResponse = response.generate(true, 'No Room Found', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'Left the room successfully', 200, result)
+            res.send(apiResponse)
+        }
+    });// end Room model update
+}// end remove User
+
+
+// remove user from member
+let removeUserFromRequested = (req, res) => {
+
+    let options = { $pull: { requested: req.body.requested } }
+    RoomModel.update({ 'roomId': req.params.roomId }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'roomController:removeUser', 10)
+            let apiResponse = response.generate(true, 'Failed To remove user details', 500, null)
+            res.send(apiResponse)
+        } else if (check.isEmpty(result)) {
+            logger.info('No Room Found', 'RoomController: removeUserFromRequest')
+            let apiResponse = response.generate(true, 'No Room Found', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'User request has Declined', 200, result)
+            res.send(apiResponse)
+        }
+    });// end Room model update
+
+}//end of remove user from requested array
+
+
 module.exports = {
 
     getAllRoom: getAllRoom,
-    requestToJoin : requestToJoin,
+    requestToJoin: requestToJoin,
     getRoomById: getRoomById,
     invitationMail: invitationMail,
-    editRoom: editRoom,
-    
+    editRoomName: editRoomName,
+    addUserToRoom: addUserToRoom,
+    removeUser: removeUser,
+    removeUserFromRequested: removeUserFromRequested,
+
 }

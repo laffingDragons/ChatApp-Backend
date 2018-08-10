@@ -32,14 +32,14 @@ let setServer = (server) => {
 
         socket.on('set-user',(authToken) => {
 
-            console.log("set-user called",authToken)
+            // console.log("set-user called",authToken)
             tokenLib.verifyClaimWithoutSecret(authToken,(err,user)=>{
                 if(err){
                     socket.emit('auth-error', { status: 500, error: 'Please provide correct auth token' })
                 }
                 else{
 
-                    console.log("user is verified..setting details");
+                    // console.log("user is verified..setting details");
                     let currentUser = user.data;
                     // setting socket user id 
                     socket.userId = currentUser.userId
@@ -63,7 +63,7 @@ let setServer = (server) => {
                                     socket.room = 'edChat'
                                     // joining chat-group room. 
                                     socket.join(socket.room)
-                                    socket.to(socket.room).broadcast.emit('online-user-list', result);
+                                    socket.broadcast.to(socket.room).emit('online-user-list', result);
                                 }
 
                             })
@@ -125,13 +125,13 @@ let setServer = (server) => {
 
             console.log("socket chat-msg called")
             data['chatId'] = shortid.generate()
-            console.log(data);
 
             // event to save chat.
             setTimeout(function(){
                 eventEmitter.emit('save-chat', data);
 
             },2000)
+            
             myIo.emit(data.receiverId,data)
 
         });
@@ -139,26 +139,29 @@ let setServer = (server) => {
         // Get chatroom msg
         socket.on('chatroom-msg', (data) => {
 
-            console.log("socket chat-msg called")
             data['chatId'] = shortid.generate()
-            console.log(data);
 
             // event to save chat.
             setTimeout(function(){
                 eventEmitter.emit('save-chat', data);
 
             },2000)
-            myIo.emit(data.chatRoom, data)
+            
+            socket.to(data.chatRoom).broadcast.emit('room-msg',data);
 
         });
 
-        //crate a new chat Room
+        //subscribing a room
+        socket.on('subscribe-room',(data) => {
+            
+            socket.room = data
+            socket.join(socket.room);
+        }) 
 
+        //create a new chat Room
     socket.on('create-room', (data) => {
 
-        console.log("socket Create-room called")
         data['roomId'] = shortid.generate()
-        console.log(data);
 
         // event to save room.
        
@@ -167,16 +170,12 @@ let setServer = (server) => {
         myIo.emit(data.receiverId,data)
 
     })
- 
 
-        socket.on('typing', (fullName) => {
+        socket.on('typing', (userData) => {
             
-            socket.to(socket.room).broadcast.emit('typing',fullName);
+            socket.to(socket.room).broadcast.emit('typing-user', userData );
 
         });
-
-
-
 
     });
 
@@ -212,7 +211,7 @@ eventEmitter.on('save-chat', (data) => {
         }
         else {
             console.log("Chat Saved.");
-            console.log(result);
+            // console.log(result);
         }
     });
 
@@ -241,7 +240,7 @@ eventEmitter.on('save-chat', (data) => {
         }
         else {
             console.log("Room Saved.");
-            console.log(result);
+            // console.log(result);
         }
     });
 
