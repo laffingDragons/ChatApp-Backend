@@ -16,10 +16,9 @@ const UserModel = mongoose.model('User')
 
 /* Get all user Details */
 let getAllUser = (req, res) => {
-    console.log(">>>>>>>>");
     
     UserModel.find()
-        .select(' -__v -_id')
+        .select(' -__v -_id -password')
         .lean()
         .exec((err, result) => {
             if (err) {
@@ -65,7 +64,7 @@ let getSingleUser = (req, res) => {
 
 let deleteUser = (req, res) => {
 
-    UserModel.findOneAndRemove({ 'userId': req.params.userId }).exec((err, result) => {
+    UserModel.findOneAndRemove({ 'userId': req.params.userId }).select(' -__v -_id -password').exec((err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'userController: deleteUser', 10)
@@ -87,7 +86,7 @@ let deleteUser = (req, res) => {
 let editUser = (req, res) => {
 
     let options = req.body;
-    UserModel.update({ 'userId': req.params.userId }, options).exec((err, result) => {
+    UserModel.update({ 'userId': req.params.userId }, options).select('-password -__v -_id').exec((err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'userController:editUser', 10)
@@ -328,7 +327,7 @@ let changePasswordFunction = (req, res) =>{
 
     let password = passwordLib.hashPassword(req.body.password);
 
-    UserModel.findOneAndUpdate({ 'userId': req.body.userId},{ 'password': password }).exec((err, result) => {
+    UserModel.findOneAndUpdate({ 'userId': req.body.userId},{ 'password': password }).select('-password -__v -_id').exec((err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'userController:editUser', 10)
@@ -429,7 +428,7 @@ let loginFunction = (req, res) => {
             AuthModel.findOne({ userId: tokenDetails.userId }, (err, retrievedTokenDetails) => {
                 if (err) {
                     console.log(err.message, 'userController: saveToken', 10)
-                    let apiResponse = response.generate(true, 'Failed To Generate Token', 500, null)
+                    let apiResponse = response.generate(true, 'Error in Login', 500, null)
                     reject(apiResponse)
                 } else if (check.isEmpty(retrievedTokenDetails)) {
                     let newAuthToken = new AuthModel({
@@ -442,7 +441,7 @@ let loginFunction = (req, res) => {
                         if (err) {
                             console.log(err)
                             logger.error(err.message, 'userController: saveToken', 10)
-                            let apiResponse = response.generate(true, 'Failed To Generate Token', 500, null)
+                            let apiResponse = response.generate(true, 'Failed To Save Token', 500, null)
                             reject(apiResponse)
                         } else {
                             let responseBody = {
@@ -460,7 +459,7 @@ let loginFunction = (req, res) => {
                         if (err) {
                             console.log(err)
                             logger.error(err.message, 'userController: saveToken', 10)
-                            let apiResponse = response.generate(true, 'Failed To Generate Token', 500, null)
+                            let apiResponse = response.generate(true, 'Failed To Save Token', 500, null)
                             reject(apiResponse)
                         } else {
                             let responseBody = {
@@ -500,7 +499,7 @@ let loginFunction = (req, res) => {
  * auth params: userId.
  */
 let logout = (req, res) => {
-    AuthModel.findOneAndRemove({ userId: req.user.userId }, (err, result) => {
+    AuthModel.findOneAndRemove({ userId: req.body.userId }, (err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'user Controller: logout', 10)

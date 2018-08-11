@@ -1,20 +1,8 @@
 const check = require('./checkLib')
-// const redis =require('redis')
-// let client = redis.createClient();
+const redis =require('redis')
+let client = redis.createClient();
 
 
-// for deployment purpose on heroku
-if (process.env.REDISTOGO_URL) {
-
-    var redis = require('redis');
-    var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
-
-
-} else {
-
-    var client = require('redis').createClient();
-    
-}
 
 client.on("connect", () =>{
 

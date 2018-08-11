@@ -53,6 +53,46 @@ module.exports.setRouter = (app) => {
 
   // params: senderId, receiverId, skip.
   app.get(`${baseUrl}/get/for/user`, auth.isAuthorized, chatController.getUsersChat);
+    
+   /**
+   * @apiGroup chat
+   * @apiVersion  1.0.0
+   * @api {get} /api/v1/chat/get/for/group to get paginated chats of group.
+   * 
+   * @apiParam {string} roomId Room Id of the room. (query params) (required)
+   * @apiParam {number} skip skip value for pagination. (query params) (optional)
+   *
+   * @apiSuccess {object} myResponse shows error status, message, http status code, result.
+   * 
+   * @apiSuccessExample {object} Success-Response:
+       {
+        "error": false,
+        "message": "All Group Chats Listed",
+        "status": 200,
+        "data": [
+          {
+            "chatId": "String",
+            "modifiedOn": "Date",
+            "createdOn": "Date",
+            "message": "String",
+            "senderId": "String",
+            "senderName": "String",
+            "chatRoom": "String"
+          },
+          {
+            "chatId": "String",
+            "modifiedOn": "Date",
+            "createdOn": "Date",
+            "message": "String",
+            "senderId": "String",
+            "senderName": "String",
+            "chatRoom": "String"
+          },
+          .........................
+        ]
+
+      }
+ */
 
   // params: chatRoom, skip.
   app.get(`${baseUrl}/get/for/group`, auth.isAuthorized, chatController.getGroupChat);

@@ -44,7 +44,6 @@ let setServer = (server) => {
                     // setting socket user id 
                     socket.userId = currentUser.userId
                     let fullName = `${currentUser.firstName} ${currentUser.lastName}`
-                    console.log(`${fullName} is online`);
                     let key = currentUser.userId
                     let value = fullName
 
@@ -58,12 +57,15 @@ let setServer = (server) => {
                                 if(err){
                                     console.log(err);
                                 }else{
-                                    console.log(`${fullName} is online`);
+                                    console.log(">>>>>>>>>>>",`${fullName} is online`);
                                     // setting room name
                                     socket.room = 'edChat'
                                     // joining chat-group room. 
                                     socket.join(socket.room)
-                                    socket.broadcast.to(socket.room).emit('online-user-list', result);
+                                    setTimeout(() => {
+                                        socket.broadcast.to(socket.room).emit('online-user-list', result);
+                                    }, 1000);
+
                                 }
 
                             })

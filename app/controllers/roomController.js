@@ -114,7 +114,7 @@ let editRoomName = (req, res) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'roomController:editRoom', 10)
-            let apiResponse = response.generate(true, 'Failed To edit Room details', 500, null)
+            let apiResponse = response.generate(true, 'Failed To edit Room name', 500, null)
             res.send(apiResponse)
         } else if (check.isEmpty(result)) {
             logger.info('No Room Found', 'RoomController: editRoom')
@@ -138,14 +138,14 @@ let addUserToRoom = (req, res) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'roomController:addUserToRoom', 10)
-            let apiResponse = response.generate(true, 'Failed To edit Room details', 500, null)
+            let apiResponse = response.generate(true, 'Failed To add members Room ', 500, null)
             res.send(apiResponse)
         } else if (check.isEmpty(result)) {
             logger.info('No Room Found', 'RoomController: addUserToRoom')
             let apiResponse = response.generate(true, 'No Room Found', 404, null)
             res.send(apiResponse)
         } else {
-            let apiResponse = response.generate(false, 'User Added to room Successfully', 200, result)
+            let apiResponse = response.generate(false, 'Users Added to room Successfully', 200, result)
             res.send(apiResponse)
         }
     });// end Room model update
@@ -161,7 +161,7 @@ let removeUser = (req, res) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'roomController:removeUser', 10)
-            let apiResponse = response.generate(true, 'Failed To remove user details', 500, null)
+            let apiResponse = response.generate(true, 'Failed To remove user from room', 500, null)
             res.send(apiResponse)
         } else if (check.isEmpty(result)) {
             logger.info('No Room Found', 'RoomController: removeUser')
@@ -183,7 +183,7 @@ let removeUserFromRequested = (req, res) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'roomController:removeUser', 10)
-            let apiResponse = response.generate(true, 'Failed To remove user details', 500, null)
+            let apiResponse = response.generate(true, 'Failed To remove user from Requested', 500, null)
             res.send(apiResponse)
         } else if (check.isEmpty(result)) {
             logger.info('No Room Found', 'RoomController: removeUserFromRequest')
