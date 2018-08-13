@@ -23,9 +23,7 @@ let setServer = (server) => {
     let myIo = io.of('/')
 
     myIo.on('connection',(socket) => {
-
-        console.log("on connection--emitting verify user");
-
+        
         socket.emit("verifyUser", "");
 
         // code to verify the user and make him online
@@ -39,7 +37,7 @@ let setServer = (server) => {
                 }
                 else{
 
-                    // console.log("user is verified..setting details");
+                    console.log("user is verified..setting details");
                     let currentUser = user.data;
                     // setting socket user id 
                     socket.userId = currentUser.userId
@@ -47,7 +45,7 @@ let setServer = (server) => {
                     let key = currentUser.userId
                     let value = fullName
 
-                    let setUserOnline = redisLib.setANewOnlineUserInHash("onlineUsers", key, value, (err, result) => {
+                    redisLib.setANewOnlineUserInHash("onlineUsers", key, value, (err, result) => {
                         if(err){
                             console.log(`some error occured`,err);
                         }else{
@@ -57,14 +55,12 @@ let setServer = (server) => {
                                 if(err){
                                     console.log(err);
                                 }else{
-                                    console.log(">>>>>>>>>>>",`${fullName} is online`);
                                     // setting room name
+                                    console.log(">>>>>>>>>>>",`${fullName} is online`);
                                     socket.room = 'edChat'
                                     // joining chat-group room. 
                                     socket.join(socket.room)
-                                    setTimeout(() => {
-                                        socket.broadcast.to(socket.room).emit('online-user-list', result);
-                                    }, 1000);
+                                    socket.broadcast.to(socket.room).emit('online-user-list', result);
 
                                 }
 
