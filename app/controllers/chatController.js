@@ -42,19 +42,19 @@ let getUsersChat = (req, res) => {
         $or: [
           {
             $and: [
-              {senderId: req.query.senderId},
-              {receiverId: req.query.receiverId}
+              { senderId: req.query.senderId },
+              { receiverId: req.query.receiverId }
             ]
           },
           {
             $and: [
-              {receiverId: req.query.senderId},
-              {senderId: req.query.receiverId}
+              { receiverId: req.query.senderId },
+              { senderId: req.query.receiverId }
             ]
           }
         ]
       }
-    
+
       ChatModel.find(findQuery)
         .select('-_id -__v -chatRoom')
         .sort('-createdOn')
@@ -190,23 +190,23 @@ let markChatAsSeen = (req, res) => {
         seen: true
       }
 
-      ChatModel.update(findQuery, updateQuery, {multi: true})
-      .exec((err, result) => {
-        if (err) {
-          console.log(err)
-          logger.error(err.message, 'Chat Controller: markChatAsSeen', 10)
-          let apiResponse = response.generate(true, `error occurred: ${err.message}`, 500, null)
-          reject(apiResponse)
-        } else if (result.n === 0) {
-          logger.info('No Chat Found', 'Chat Controller: markChatAsSeen')
-          let apiResponse = response.generate(true, 'No Chat Found', 404, null)
-          reject(apiResponse)
-        } else {
-          console.log('chat found and updated.')
+      ChatModel.update(findQuery, updateQuery, { multi: true })
+        .exec((err, result) => {
+          if (err) {
+            console.log(err)
+            logger.error(err.message, 'Chat Controller: markChatAsSeen', 10)
+            let apiResponse = response.generate(true, `error occurred: ${err.message}`, 500, null)
+            reject(apiResponse)
+          } else if (result.n === 0) {
+            logger.info('No Chat Found', 'Chat Controller: markChatAsSeen')
+            let apiResponse = response.generate(true, 'No Chat Found', 404, null)
+            reject(apiResponse)
+          } else {
+            console.log('chat found and updated.')
 
-          resolve(result)
-        }
-      })
+            resolve(result)
+          }
+        })
     })
   } // end of the modifyChat function.
 
@@ -357,7 +357,6 @@ let findUnSeenChat = (req, res) => {
  * params: userId.
  */
 let findUserListOfUnseenChat = (req, res) => {
-  console.log('--- inside findUserListOfChat function ---')
 
   // function to validate params.
   let validateParams = () => {
@@ -375,7 +374,7 @@ let findUserListOfUnseenChat = (req, res) => {
   // find distinct sender.
   let findDistinctSender = () => {
     return new Promise((resolve, reject) => {
-      ChatModel.distinct('senderId', {receiverId: req.query.userId, seen: false})
+      ChatModel.distinct('senderId', { receiverId: req.query.userId, seen: false })
         .exec((err, senderIdList) => {
           if (err) {
             console.log(err)
@@ -400,7 +399,7 @@ let findUserListOfUnseenChat = (req, res) => {
   // function to find user info.
   let findUserInfo = (senderIdList) => {
     return new Promise((resolve, reject) => {
-      UserModel.find({userId: {$in: senderIdList}})
+      UserModel.find({ userId: { $in: senderIdList } })
         .select('-_id -__v -password -email -mobileNumber')
         .lean()
         .exec((err, result) => {
@@ -415,8 +414,6 @@ let findUserListOfUnseenChat = (req, res) => {
             reject(apiResponse)
           } else {
             console.log('User found and userIds listed.')
-
-            // console.log(result)
 
             resolve(result)
           }

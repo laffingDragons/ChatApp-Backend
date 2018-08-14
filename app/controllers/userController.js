@@ -16,7 +16,7 @@ const UserModel = mongoose.model('User')
 
 /* Get all user Details */
 let getAllUser = (req, res) => {
-    
+
     UserModel.find()
         .select(' -__v -_id -password')
         .lean()
@@ -31,7 +31,7 @@ let getAllUser = (req, res) => {
                 let apiResponse = response.generate(true, 'No User Found', 404, null)
                 res.send(apiResponse)
             } else {
-                
+
                 let apiResponse = response.generate(false, 'All User Details Found', 200, result);
                 res.send(apiResponse);
             }
@@ -296,7 +296,7 @@ let forgotPasswordFunction = (req, res) => {
                         let apiResponse = response.generate(true, 'Failed To Create User', 500, null)
                         reject(apiResponse)
                     } else {
-                       
+
                         mail.forgotPasswordMail(validEmail.email, validEmail.userId); //code for sending email to reset password
                         resolve(validEmail);
                     }
@@ -323,11 +323,11 @@ let forgotPasswordFunction = (req, res) => {
 }
 
 // function to change password
-let changePasswordFunction = (req, res) =>{
+let changePasswordFunction = (req, res) => {
 
     let password = passwordLib.hashPassword(req.body.password);
 
-    UserModel.findOneAndUpdate({ 'userId': req.body.userId},{ 'password': password }).select('-password -__v -_id').exec((err, result) => {
+    UserModel.findOneAndUpdate({ 'userId': req.body.userId }, { 'password': password }).select('-password -__v -_id').exec((err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'userController:editUser', 10)
@@ -343,7 +343,7 @@ let changePasswordFunction = (req, res) =>{
         }
     });// end user model update
 
-} 
+}
 
 
 // start of login function 
