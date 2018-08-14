@@ -188,7 +188,7 @@ let setServer = (server) => {
 
         socket.on('typing', (userData) => {
 
-            socket.to(socket.room).broadcast.emit('typing-user', userData);
+            socket.to("Global").broadcast.emit('typing-user', userData);
 
         });
 
