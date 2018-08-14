@@ -154,6 +154,7 @@ let setServer = (server) => {
             
             socket.room = data
             socket.join(socket.room);
+            
         }) 
 
         //create a new chat Room
