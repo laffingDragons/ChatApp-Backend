@@ -216,7 +216,7 @@ let forgotPasswordMail = (email, userId) => {
                 <h1 style="color: #262626; font-size: 3rem; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 2px; font-family: 'Montserrat',arial;">Change Password</h1>
 
                 <div style="color: #C7C7C7; font-size: 0.9rem; text-transform: uppercase;letter-spacing: 1px; padding-right: 6px;">
-                Please click <a href="http://localhost:4200/change-password/${userId}">here</a> to change password.
+                Please click <a href="http://angular-chat.akshaypatil.online/change-password/${userId}">here</a> to change password.
                 </div>
                 <br>
 
