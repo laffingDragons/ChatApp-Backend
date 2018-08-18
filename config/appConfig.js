@@ -5,7 +5,7 @@ appConfig.port = 3000;
 appConfig.allowedCorsOrigin = "*";
 appConfig.env = "dev";
 appConfig.db = {
-    uri: 'mongodb://127.0.0.1:27017/chatAppDB'
+    uri: 'mongodb://<dbuser>:<dbpassword>@ds119072.mlab.com:19072/chatapp'
   }
 appConfig.apiVersion = '/api/v1';
 
