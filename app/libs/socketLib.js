@@ -10,13 +10,13 @@ const check = require("./checkLib.js");
 const time = require("./timeLib");
 const response = require('./responseLib')
 const ChatModel = mongoose.model('Chat')
-const RoomModel = mongoose.model('Room')
-const redisLib = require('./redisLib')
+const NotifyModel = mongoose.model('Notify')
+// const redisLib = require('./redisLib')
 const mail = require('./mailLib');
 
 let setServer = (server) => {
 
-    // let allOnlineUsers = []
+    let allOnlineUsers = []
 
     let io = socketio.listen(server);
 
@@ -24,14 +24,14 @@ let setServer = (server) => {
 
     myIo.on('connection', (socket) => {
 
-        socket.emit("verifyUser", "");
-
+        socket.emit("verifyUser", "SOme data");
         // code to verify the user and make him online
 
         socket.on('set-user', (authToken) => {
-
+            
             tokenLib.verifyClaimWithoutSecret(authToken, (err, user) => {
                 if (err) {
+                    
                     socket.emit('auth-error', { status: 500, error: 'Please provide correct auth token' })
                 }
                 else {
@@ -41,45 +41,48 @@ let setServer = (server) => {
                     // setting socket user id 
                     socket.userId = currentUser.userId
                     let fullName = `${currentUser.firstName} ${currentUser.lastName}`
-                    let key = currentUser.userId
-                    let value = fullName
+                    console.log(`${fullName} has Logged in successfully`);
+                    
+                    let userObject = {userId:currentUser.userId, fullName: fullName}
+                    allOnlineUsers.push(userObject);
+                    console.log(allOnlineUsers);
+                    
+                    // redisLib.setANewOnlineUserInHash("onlineUsers", key, value, (err, result) => {
+                    //     if (err) {
+                    //         console.log(`some error occured`, err);
+                    //     } else {
+                    //         // get online users lists
+                    //         redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
 
-                    redisLib.setANewOnlineUserInHash("onlineUsers", key, value, (err, result) => {
-                        if (err) {
-                            console.log(`some error occured`, err);
-                        } else {
-                            // get online users lists
-                            redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
+                    //             if (err) {
+                    //                 console.log(err);
+                    //             } else {
 
-                                if (err) {
-                                    console.log(err);
-                                } else {
+                    //                 //  making user to join global room
+                    //                 socket.room = "Global"
+                    //                 socket.join(socket.room);
 
-                                    //  making user to join global room
-                                    socket.room = "Global"
-                                    socket.join(socket.room);
-
-                                    // very very important point to be noted here is that
-                                    // broadcast emits to everyone except the client
-                                    // socket.to(socket.room).broadcast.emit('online-user-list',result);
-                                    myIo.emit('online-user-list', result);
+                    //                 // very very important point to be noted here is that
+                    //                 // broadcast emits to everyone except the client
+                    //                 // socket.to(socket.room).broadcast.emit('online-user-list',result);
+                    //                 myIo.emit('online-user-list', result);
 
 
-                                }
+                    //             }
 
-                            })
-                        }
+                    //         })
+                    //     }
 
-                    })
+                    // })
 
                     // let userObj = {userId:currentUser.userId,fullName:fullName}
                     // allOnlineUsers.push(userObj)
 
                     // // setting room name
-                    // socket.room = 'edChat'
-                    // // joining chat-group room.
-                    // socket.join(socket.room)
-                    // socket.to(socket.room).broadcast.emit('online-user-list',allOnlineUsers);
+                    socket.room = 'edChat'
+                    // joining chat-group room.
+                    socket.join(socket.room)
+                    myIo.emit('online-user-list',allOnlineUsers);
 
                 }
 
@@ -98,51 +101,51 @@ let setServer = (server) => {
             console.log(socket.userId);
 
 
-            // var removeIndex = allOnlineUsers.map(function(user) { return user.userId; }).indexOf(socket.userId);
-            // allOnlineUsers.splice(removeIndex,1)
+            var removeIndex = allOnlineUsers.map(function(user) { return user.userId; }).indexOf(socket.userId);
+            allOnlineUsers.splice(removeIndex,1)
 
-            // socket.to(socket.room).broadcast.emit('online-user-list',allOnlineUsers);
-            // socket.leave(socket.room)
+            socket.leave(socket.room)
+            socket.to(socket.room).broadcast.emit('online-user-list',allOnlineUsers);
 
-            if (socket.userId) {
-                redisLib.deleteUserFromHash('onlineUsers', socket.userId)
-                redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        socket.leave(socket.room)
-                        socket.to(socket.room).broadcast.emit('online-user-list', result)
-                    }
-                })
-            }
+        //     if (socket.userId) {
+        //         redisLib.deleteUserFromHash('onlineUsers', socket.userId)
+        //         redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
+        //             if (err) {
+        //                 console.log(err);
+        //             } else {
+        //                 socket.leave(socket.room)
+        //                 socket.to(socket.room).broadcast.emit('online-user-list', result)
+        //             }
+        //         })
+        //     }
 
         }) // end of on disconnect
 
 
-        socket.on('refresh', () => {
+        // socket.on('refresh', () => {
 
-            redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    //  making user to join global room
-                    socket.room = "Global"
-                    socket.join(socket.room);
+        //     redisLib.getAllUsersInHash('onlineUsers', (err, result) => {
+        //         if (err) {
+        //             console.log(err);
+        //         } else {
+        //             //  making user to join global room
+        //             socket.room = "Global"
+        //             socket.join(socket.room);
 
 
-                }
-            })
+        //         }
+        //     })
 
-        })
+        // })
 
-        socket.on('chat-msg', (data) => {
+        socket.on('notify', (data) => {
 
             console.log("socket chat-msg called")
-            data['chatId'] = shortid.generate()
+            data['notifyId'] = shortid.generate()
 
             // event to save chat.
             setTimeout(function () {
-                eventEmitter.emit('save-chat', data);
+                eventEmitter.emit('save-notify', data);
 
             }, 2000)
 
@@ -151,46 +154,46 @@ let setServer = (server) => {
         });
 
         // Get chatroom msg
-        socket.on('chatroom-msg', (data) => {
+        // socket.on('chatroom-msg', (data) => {
 
-            data['chatId'] = shortid.generate()
+        //     data['chatId'] = shortid.generate()
 
-            // event to save chat.
-            setTimeout(function () {
-                eventEmitter.emit('save-chat', data);
+        //     // event to save chat.
+        //     setTimeout(function () {
+        //         eventEmitter.emit('save-chat', data);
 
-            }, 2000)
+        //     }, 2000)
 
-            socket.to(data.chatRoom).broadcast.emit('room-msg', data);
+        //     socket.to(data.chatRoom).broadcast.emit('room-msg', data);
 
-        });
+        // });
 
         //subscribing a room
-        socket.on('subscribe-room', (data) => {
+        // socket.on('subscribe-room', (data) => {
 
-            socket.room = data
-            socket.join(socket.room);
+        //     socket.room = data
+        //     socket.join(socket.room);
 
-        })
+        // })
 
         //create a new chat Room
-        socket.on('create-room', (data) => {
+        // socket.on('create-room', (data) => {
 
-            data['roomId'] = shortid.generate()
+        //     data['roomId'] = shortid.generate()
 
-            // event to save room.
+        //     // event to save room.
 
-            eventEmitter.emit('save-room', data);
+        //     eventEmitter.emit('save-room', data);
 
-            myIo.emit(data.receiverId, data)
+        //     myIo.emit(data.receiverId, data)
 
-        })
+        // })
 
-        socket.on('typing', (userData) => {
+        // socket.on('typing', (userData) => {
 
-            socket.to("Global").broadcast.emit('typing-user', userData);
+        //     socket.to("Global").broadcast.emit('typing-user', userData);
 
-        });
+        // });
 
     });
 
@@ -199,33 +202,32 @@ let setServer = (server) => {
 
 // database operations are kept outside of socket.io code.
 
-// saving chats to database.
-eventEmitter.on('save-chat', (data) => {
+// saving Notifys to database.
+eventEmitter.on('save-notify', (data) => {
 
     // let today = Date.now();
 
-    let newChat = new ChatModel({
+    let newNotify = new NotifyModel({
 
-        chatId: data.chatId,
+        notifyId: data.notifyId,
         senderName: data.senderName,
         senderId: data.senderId,
         receiverName: data.receiverName || '',
         receiverId: data.receiverId || '',
         message: data.message,
-        chatRoom: data.chatRoom || '',
         createdOn: data.createdOn
 
     });
 
-    newChat.save((err, result) => {
+    newNotify.save((err, result) => {
         if (err) {
             console.log(`error occurred: ${err}`);
         }
         else if (result == undefined || result == null || result == "") {
-            console.log("Chat Is Not Saved.");
+            console.log("Notify Is Not Saved.");
         }
         else {
-            console.log("Chat Saved.");
+            console.log("Notify Saved.");
         }
     });
 
@@ -233,31 +235,31 @@ eventEmitter.on('save-chat', (data) => {
 
 
 //to save the room
-eventEmitter.on('save-room', (data) => {
+// eventEmitter.on('save-room', (data) => {
 
-    let newRoom = new RoomModel({
+//     let newRoom = new RoomModel({
 
-        roomId: data.roomId,
-        roomName: data.roomName,
-        members: data.members,
-        active: true,
-        admin: data.admin,
-        createdOn: time.now()
-    })
+//         roomId: data.roomId,
+//         roomName: data.roomName,
+//         members: data.members,
+//         active: true,
+//         admin: data.admin,
+//         createdOn: time.now()
+//     })
 
-    newRoom.save((err, result) => {
-        if (err) {
-            console.log(`error occurred: ${err}`);
-        }
-        else if (result == undefined || result == null || result == "") {
-            console.log("Room Is Not Saved.");
-        }
-        else {
-            console.log("Room Saved.");
-        }
-    });
+//     newRoom.save((err, result) => {
+//         if (err) {
+//             console.log(`error occurred: ${err}`);
+//         }
+//         else if (result == undefined || result == null || result == "") {
+//             console.log("Room Is Not Saved.");
+//         }
+//         else {
+//             console.log("Room Saved.");
+//         }
+//     });
 
-});
+// });
 
 
 

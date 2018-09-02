@@ -34,8 +34,14 @@ let userSchema = new Schema({
   },
   createdOn :{
     type:Date,
-    default:""
-  }
+    default: Date.now
+  },
+
+  friends:[{ type: String }],
+
+  request:[{ type: String }],
+
+  requested:[{ type: String }],
 
 
 })

@@ -106,6 +106,147 @@ let editUser = (req, res) => {
 }// end edit user
 
 
+// Pushing the user  to request Array
+let request = (req, res) => {
+
+    // adding to request of the desire friend
+    let options = { $addToSet: { request: req.body.request } }
+    UserModel.update({ 'userId': req.params.userId }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'userController: Database error', 10)
+            let apiResponse = response.generate(true, 'Failed To Request', 500, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'Successfully sent request', 200, result)
+            res.send(apiResponse)
+        }
+    });// end user model update
+
+}
+
+// adding to requested to own list
+let requested = (req, res) =>{
+
+    let options = { $addToSet: { requested: req.params.userId } }
+    UserModel.update({ 'userId': req.body.request   }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'userController: Database error', 10)
+            let apiResponse = response.generate(true, 'Failed To Request', 500, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'Successfully sent request', 200, result)
+            res.send(apiResponse)
+        }
+    });// end user model update
+
+}//end of requested
+
+
+
+let addAsFriend = (req, res) => {
+
+    // adding user's request to friends array 
+    let addUserToFriendsArray = () =>{
+        return new Promise((resolve, reject) =>{
+
+            let options = { $addToSet: { friends: req.body.request } }
+            UserModel.update({ 'userId': req.params.userId }, options).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error(err.message, 'userController: Database error', 10)
+                    let apiResponse = response.generate(true, 'Failed To Add User To Friends Array', 500, null)
+                    reject(apiResponse)
+                } else {
+                    let apiResponse = response.generate(false, 'Add User To Friends Array', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+
+        })
+    }
+
+    // adding user to his friend's  "friends" array
+    let addToFriendsArray = () =>{
+        return new Promise((resolve, reject) =>{
+
+            let options = { $addToSet: { friends: req.params.userId } }
+            UserModel.update({ 'userId': req.body.request}, options).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error(err.message, 'userController: Database error', 10)
+                    let apiResponse = response.generate(true, 'Failed To Add To Friends Array', 500, null)
+                    reject(apiResponse)
+                } else {
+                    let apiResponse = response.generate(false, 'Successfully Added To Friends Array', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+
+        })
+    }
+
+
+    // removing user from requested array
+    let removeFromRequest = () =>{
+        return new Promise((resolve, reject) =>{
+
+            let options = { $pull: { request : req.body.request} }
+            UserModel.update({ 'userId': req.params.userId }, options).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error(err.message, 'userController: Database error', 10)
+                    let apiResponse = response.generate(true, 'Failed To Remove From Requested', 500, null)
+                    reject(apiResponse)
+                } else {
+                    let apiResponse = response.generate(false, 'Successfully Removed From Requested', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+
+        })
+    }
+
+
+    // removing user from friend's request array
+    let removeFromRequested = () =>{
+        return new Promise((resolve, reject) =>{
+
+            let options = { $pull: { requested: req.params.userId } }
+            UserModel.update({ 'userId': req.body.request}, options).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error(err.message, 'userController: Database error', 10)
+                    let apiResponse = response.generate(true, 'Failed To Remove From Request', 500, null)
+                    reject(apiResponse)
+                } else {
+                    let apiResponse = response.generate(false, 'Successfully Removed From Request', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+
+        })
+    }
+
+    addUserToFriendsArray(req, res)
+    .then(addToFriendsArray)
+    .then(removeFromRequested)
+    .then(removeFromRequest)
+    .then((resolve) => {
+       
+        let apiResponse = response.generate(false, 'Friend added successfully', 200, resolve)
+        res.send(apiResponse)
+    })
+    .catch((err) => {
+        console.log(err);
+        res.send(err);
+    })
+
+
+}
+
+
 // start user signup function 
 
 let signUpFunction = (req, res) => {
@@ -526,6 +667,9 @@ module.exports = {
     deleteUser: deleteUser,
     getSingleUser: getSingleUser,
     loginFunction: loginFunction,
-    logout: logout
+    logout: logout,
+    request:request,
+    requested : requested,
+    addAsFriend: addAsFriend,
 
 }// end exports

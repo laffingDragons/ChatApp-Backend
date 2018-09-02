@@ -327,4 +327,11 @@ module.exports.setRouter = (app) => {
 	*   "data": null
 	* }
     */    
+
+   app.put(`${baseUrl}/:userId/request`, auth.isAuthorized, userController.request);
+
+   app.put(`${baseUrl}/:userId/requested`, auth.isAuthorized, userController.requested);
+
+   app.put(`${baseUrl}/:userId/addAsFriend`, auth.isAuthorized, userController.addAsFriend);
+
 }
